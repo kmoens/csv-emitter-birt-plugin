@@ -49,8 +49,6 @@ public class CSVReportEmitter extends ContentEmitterAdapter {
     protected long firstTableID = -1;
 
     protected boolean writeData = true;
-    protected String tableToOutput;
-    protected boolean outputCurrentTable;
     protected String delimiter = null;
 
     public CSVReportEmitter() {
@@ -75,14 +73,6 @@ public class CSVReportEmitter extends ContentEmitterAdapter {
         this.report = report;
 
         renderOption = report.getReportContext().getRenderOption();
-
-        tableToOutput = (String) renderOption.getOption(ICSVRenderOption.EXPORT_TABLE_BY_NAME);
-
-        // Setting tableToOutput to Default as user has not set any Render Option to Output a specific Table
-        if (tableToOutput == null) {
-            tableToOutput = "Default";
-        }
-
         delimiter = (String) renderOption.getOption(ICSVRenderOption.DELIMITER);
 
         // Setting Default Field Delimiter if user has not specified any Delimiter
@@ -100,10 +90,6 @@ public class CSVReportEmitter extends ContentEmitterAdapter {
         writer.close();
 
         // Informing user if Table Name provided in Render Option is not found and Blank Report is getting generated
-        if (tableToOutput != "Default" && report.getDesign().getReportDesign().findElement(tableToOutput) == null) {
-            System.out.println(tableToOutput + " Table not found in Report Design. Blank Report Generated!!");
-            logger.log(Level.WARNING, tableToOutput + " Table not found in Report Design. Blank Report Generated!!");
-        }
         if (out != null) {
             try {
                 out.close();
@@ -147,23 +133,13 @@ public class CSVReportEmitter extends ContentEmitterAdapter {
         if (firstTableID == -1) {
             firstTableID = table.getInstanceID().getComponentID();
         }
-
-        String currentTableName = table.getName();
-
-        if (tableToOutput.equals("Default") && table.getInstanceID().getComponentID() == firstTableID) {
-            outputCurrentTable = true;
-        } else if (currentTableName != null && currentTableName.equals(tableToOutput)) {
-            outputCurrentTable = true;
-        } else {
-            outputCurrentTable = false;
-        }
     }
 
     @Override
     public void startRow(final IRowContent row) {
         assert row != null;
 
-        if (isRowInFooter(row) || isRowInHeaderExceptFirstHeader(row) || outputCurrentTable != true) {
+        if (isRowInFooter(row) || isRowInHeaderExceptFirstHeader(row)) {
             writeData = false;
         }
 
